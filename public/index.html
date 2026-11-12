@@ -35,8 +35,8 @@ main{max-width:1200px;margin:0 auto;padding:8px 20px 120px;display:grid;grid-tem
 .q{background:var(--card);color:var(--ink);border-radius:18px;padding:14px;margin-bottom:12px;border:2px solid var(--line);border-bottom-width:4px}
 .q.done{opacity:.6}.q.done .qt{text-decoration:line-through}
 .qt{font-size:17px;font-weight:900;margin:0 0 8px;overflow-wrap:anywhere}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-.chip{font-size:12px;font-weight:900;padding:3px 9px;border-radius:10px;background:var(--bg);border:2px solid var(--line);color:var(--mute)}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.chip{font-size:12px;font-weight:900;padding:2px 7px;border-radius:10px;white-space:nowrap;background:var(--bg);border:2px solid var(--line);color:var(--mute)}
 .step{display:flex;gap:8px;align-items:center;padding:4px 0;font-size:15px;cursor:pointer}
 .step.d span{text-decoration:line-through;color:var(--mute)}
 .box{width:22px;height:22px;border-radius:7px;border:2px solid var(--line);flex:none;display:grid;place-items:center;font-size:13px;color:#fff;font-weight:900}
@@ -93,6 +93,7 @@ label.l{display:block;font-weight:900;margin:14px 0 6px;font-size:15px}
 input[type=text],input[type=date]{width:100%;font:inherit;font-weight:700;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:11px 14px;outline:none}
 input[type=text]:focus,input[type=date]:focus,select:focus{border-color:#1cb0f6}
 .opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts.seg{gap:6px}.opts.seg .opt{flex:1 1 auto;min-width:0;white-space:nowrap;text-align:center;padding:8px clamp(6px,2.2vw,12px)}
 .opt{font:inherit;font-weight:900;font-size:14px;padding:8px 12px;border-radius:12px;border:2px solid var(--line);border-bottom-width:4px;background:var(--card);color:var(--ink);cursor:pointer}
 .opt.on{border-color:#1cb0f6;background:rgba(28,176,246,.15);color:#1cb0f6}
 .sw{width:42px;height:42px;border-radius:14px;border:3px solid transparent;cursor:pointer;box-shadow:0 4px 0 var(--shadow)}
@@ -183,7 +184,7 @@ select{font:inherit;font-weight:800;color:var(--ink);background:var(--bg);border
 select:disabled{opacity:.5;cursor:not-allowed}
 .ck{display:flex;align-items:center;gap:10px;margin-top:16px;cursor:pointer;font-weight:900}
 .ck input{width:22px;height:22px;accent-color:#58cc02}
-.autob{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.autob{line-height:2.6;margin-top:6px}.autob select{vertical-align:middle;margin:0 0 0 4px;line-height:normal;padding:6px 6px;font-size:.95em}.autob .selgrp{white-space:nowrap;margin-inline-end:6px}
 .autob.off,.autob.off+.hint,.ck.off{opacity:.5}
 .ck.off,.ck input:disabled{cursor:not-allowed}
 .autob+.hint{margin:8px 0 0}
@@ -348,7 +349,7 @@ function questHTML(c,q,pre='qc'){
   <div class="row">${q.done?'':`<button class="btn" data-a="done" data-c="${c.id}" data-q="${q.id}">${t('Done')}</button>`}<button class="btn solid" data-a="delq" data-c="${c.id}" data-q="${q.id}">🔥 ${t('Burn')}</button></div></div>`;
 }
 function modal(html){const m=document.getElementById('modal'),ov=m.firstElementChild;if(html&&ov){const md=ov.firstElementChild,st=md.scrollTop;md.innerHTML=html;md.style.animation='none';md.scrollTop=st;return}m.innerHTML=html?`<div class="ov" data-a="close"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`:''}
-function opts(name,list,val){return `<div class="opts">${list.map((x,i)=>`<button type="button" class="opt ${val===(Array.isArray(x)?x[1]:i)?'on':''}" data-a="opt" data-k="${name}" data-v="${Array.isArray(x)?x[1]:i}">${Array.isArray(x)?x[0]:x}</button>`).join('')}</div>`}
+function opts(name,list,val){return `<div class="opts seg">${list.map((x,i)=>`<button type="button" class="opt ${val===(Array.isArray(x)?x[1]:i)?'on':''}" data-a="opt" data-k="${name}" data-v="${Array.isArray(x)?x[1]:i}">${Array.isArray(x)?x[0]:x}</button>`).join('')}</div>`}
 const guildInfo=()=>modal(`<h3>🛡️ ${t('Guilds')}</h3><p>${t('Guilds need an Ikan server (Docker version).')}</p><div class="foot"><button class="btn" data-a="close">${t('Close')}</button></div>`);
 // Fits a title into a box of fixed height, so nothing below it ever moves: one line if it stays readable (>= minOne px),
 // otherwise it wraps onto a second line and the font shrinks until both lines fit the box.
@@ -378,10 +379,10 @@ function qModal(){
   <label class="l">${t('Importance')}</label>${opts('imp',IMP,draft.imp)}
   <label class="l" for="du">${t('Deadline (optional)')}</label><div class="addrow"><input type="date" id="du" value="${draft.due}"><button type="button" class="btn sec" data-a="cleardue" aria-label="${t('Remove deadline')}" ${draft.due?'':'disabled'}>✕</button></div>
   <label class="ck ${draft.due?'':'off'}"><input type="checkbox" data-a="auto" ${draft.auto?'checked':''} ${draft.due?'':'disabled'}> ${t('Automatically activate quest')}</label>
-  <div class="autob ${draft.auto?'':'off'}">${t('Activate when only')} <select id="an" ${draft.auto?'':'disabled'}>${[1,2,3,4,5,6].map(n=>`<option value="${n}" ${draft.an===n?'selected':''}>${n}</option>`).join('')}</select><select id="au" ${draft.auto?'':'disabled'}>${[t('days'),t('weeks'),t('months')].map((u,i)=>`<option value="${i}" ${draft.au===i?'selected':''}>${u}</option>`).join('')}</select> ${t('left')}</div>
+  <div class="autob ${draft.auto?'':'off'}">${t('Activate when only')} <span class="selgrp"><select id="an" ${draft.auto?'':'disabled'}>${[1,2,3,4,5,6].map(n=>`<option value="${n}" ${draft.an===n?'selected':''}>${n}</option>`).join('')}</select><select id="au" ${draft.auto?'':'disabled'}>${[t('days'),t('weeks'),t('months')].map((u,i)=>`<option value="${i}" ${draft.au===i?'selected':''}>${u}</option>`).join('')}</select></span>${t('left')}</div>
   <p class="hint">${t('The quest is added to your active quests automatically once the deadline is only {n} {u} away. This needs a deadline.',{n:draft.an,u:(draft.an===1?[t('day'),t('week'),t('month')]:[t('days'),t('weeks'),t('months')])[draft.au]})}</p>
   <label class="ck"><input type="checkbox" data-a="rep" ${draft.rep?'checked':''}> ${t('Perpetual quest')}</label>
-  <div class="autob ${draft.rep?'':'off'}">${t('Repeat every')} <select id="rn" ${draft.rep?'':'disabled'}>${[1,2,3,4,5,6].map(n=>`<option value="${n}" ${draft.rn===n?'selected':''}>${n}</option>`).join('')}</select><select id="ru" ${draft.rep?'':'disabled'}>${[t('days'),t('weeks'),t('months'),t('years')].map((u,i)=>`<option value="${i}" ${draft.ru===i?'selected':''}>${u}</option>`).join('')}</select></div>
+  <div class="autob ${draft.rep?'':'off'}">${t('Repeat every')} <span class="selgrp"><select id="rn" ${draft.rep?'':'disabled'}>${[1,2,3,4,5,6].map(n=>`<option value="${n}" ${draft.rn===n?'selected':''}>${n}</option>`).join('')}</select><select id="ru" ${draft.rep?'':'disabled'}>${[t('days'),t('weeks'),t('months'),t('years')].map((u,i)=>`<option value="${i}" ${draft.ru===i?'selected':''}>${u}</option>`).join('')}</select></span></div>
   <p class="hint">${t('When you finish it, the quest stays on its board and comes back with a new deadline {n} {u} later.',{n:draft.rn,u:repUnit(draft.rn,draft.ru)})}</p>
   <label class="l" for="st">${t('Steps')}</label>
   <div class="addrow"><input type="text" id="st" maxlength="80" placeholder="${t('Add a small step')}"><button type="button" class="btn" data-a="addstep">+</button></div>
