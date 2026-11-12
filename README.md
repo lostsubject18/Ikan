@@ -25,6 +25,16 @@ Update: Docker tab > "Force Update" on the container.
 3. Open the container log once and approve the login link; the device `ikan` appears in your tailnet.
 4. Share only the `ikan` machine with each tester (Machines > ikan > Share). They install Tailscale, accept the invite and open `https://ikan.<your-tailnet>.ts.net`. They cannot reach anything else on your server.
 
+## Channels
+
+| Branch | Who | Server image | Android app | APK release |
+| --- | --- | --- | --- | --- |
+| `beta` | Beta testers | `ghcr.io/lostsubject18/ikan:latest` (and `:beta`) | Ikan Quests (`io.github.lostsubject18.ikan`) → `https://ikan.tail76472d.ts.net` | `android-latest` |
+| `alpha` | Development | `ghcr.io/lostsubject18/ikan:alpha` | Ikan Alpha (`io.github.lostsubject18.ikan.alpha`, installs next to the beta) → `https://ikan-alpha.tail76472d.ts.net` | `android-alpha` |
+
+Work happens on `alpha`. To ship to the testers, merge `alpha` into `beta` and push; then force-update the `ikan` container on Unraid.
+Beta releases are tagged (`v0.1.0-beta.1`, ...).
+
 ## Docker Compose
 
     docker compose up -d --build
