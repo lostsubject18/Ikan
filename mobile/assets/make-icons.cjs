@@ -28,5 +28,6 @@ const out = f => path.join(__dirname, f);
   await sharp(maskable).resize(512).png().toFile(path.join(root, 'public', 'icon-maskable-512.png'));
   await sharp(full).resize(180).png().toFile(path.join(root, 'public', 'apple-touch-icon.png'));
   await sharp(Buffer.from(rounded)).resize(256).png().toFile(path.join(root, 'unraid', 'icon.png'));
+  require('./web-logo.cjs'); // the logo inside the web app's header and sign-in card
   console.log('icons rendered');
 })();

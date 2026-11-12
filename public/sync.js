@@ -26,7 +26,7 @@ for (const l in LB_TR) if (TR[l] || l === 'de') Object.assign(l === 'de' ? DE : 
     const setup = mode === 'setup', reg = mode === 'register';
     authState = [mode, status];
     ov.style.display = 'flex';
-    ov.innerHTML = `<form class="card"><div class="ahead"><div class="logo">Ikan Quests</div><select id="lg" aria-label="Language">${LANGS.map(([v, n]) => `<option value="${v}">${n}</option>`).join('')}</select></div>
+    ov.innerHTML = `<form class="card"><div class="ahead"><div class="logo" role="img" aria-label="Ikan Quests">${(document.querySelector('header .logo') || {}).innerHTML || 'Ikan Quests'}</div><select id="lg" aria-label="Language">${LANGS.map(([v, n]) => `<option value="${v}">${n}</option>`).join('')}</select></div>
       <p style="margin:0 0 14px;color:var(--mute)">${setup ? t('Welcome! Create the admin account for this server.') : reg ? t('Create a new account') : t('Sign in to continue')}</p>
       <label class="l" for="au">${t('Username')}</label><input type="text" id="au" autocomplete="username" maxlength="32">
       <label class="l" for="ap">${t('Password')}</label><input type="password" id="ap" autocomplete="${setup || reg ? 'new-password' : 'current-password'}">
