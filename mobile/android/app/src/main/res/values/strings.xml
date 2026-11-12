@@ -4,4 +4,5 @@
     <string name="title_activity_main">Ikan Quests</string>
     <string name="package_name">io.github.lostsubject18.ikan</string>
     <string name="custom_url_scheme">io.github.lostsubject18.ikan</string>
+    <string name="widget_description">Your active quests, tick them off right from the home screen</string>
 </resources>
