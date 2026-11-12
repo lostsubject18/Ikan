@@ -10,7 +10,8 @@ const svg = (bg, body) => Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" w
 const out = f => path.join(__dirname, f);
 (async () => {
   await sharp(svg('<rect width="1024" height="1024" fill="#58cc02"/>', fish(1.9, 470, 512))).png().toFile(out('icon-only.png'));
-  await sharp(svg('', fish(1.25, 480, 512))).png().toFile(out('icon-foreground.png'));
+  // fish spans x -150..230: centre it and size it to the 72dp circle that launchers show
+  await sharp(svg('', fish(1.45, 512 - 40 * 1.45, 512))).png().toFile(out('icon-foreground.png'));
   await sharp(svg('<rect width="1024" height="1024" fill="#58cc02"/>', '')).png().toFile(out('icon-background.png'));
   const splash = s => Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="2732" height="2732"><rect width="2732" height="2732" fill="#131f24"/>
     <rect x="1066" y="1066" width="600" height="600" rx="150" fill="#58cc02"/>${fish(1.1, 1350, 1366)}</svg>`);
