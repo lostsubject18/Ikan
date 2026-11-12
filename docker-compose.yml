@@ -1,0 +1,11 @@
+services:
+  ikan:
+    build: .
+    container_name: ikan
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      ALLOW_REGISTRATION: "false"   # true = anyone can create their own account
+    volumes:
+      - ./data:/data
