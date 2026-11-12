@@ -10,6 +10,7 @@
   <Project>https://github.com/lostsubject18/Ikan</Project>
   <Overview>Ikan Quests: a self-hosted quest-style productivity app with multiple local users. All data stays on your server. The first user to sign in becomes the admin.</Overview>
   <Category>Productivity:</Category>
+  <Icon>https://raw.githubusercontent.com/lostsubject18/Ikan/main/unraid/icon.png</Icon>
   <WebUI>http://[IP]:[PORT:3000]/</WebUI>
   <ExtraParams></ExtraParams>
   <Config Name="WebUI Port" Target="3000" Default="3000" Mode="tcp" Description="Port of the web interface" Type="Port" Display="always" Required="true" Mask="false">3000</Config>

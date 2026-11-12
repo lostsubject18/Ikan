@@ -1,4 +1,6 @@
 FROM node:24-alpine
+LABEL net.unraid.docker.icon="https://raw.githubusercontent.com/lostsubject18/Ikan/main/unraid/icon.png" \
+      org.opencontainers.image.source="https://github.com/lostsubject18/Ikan"
 RUN apk add --no-cache su-exec
 WORKDIR /app
 COPY entrypoint.sh /usr/local/bin/ikan-entrypoint.sh

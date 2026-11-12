@@ -18,7 +18,7 @@ for (const l in LB_TR) if (TR[l] || l === 'de') Object.assign(l === 'de' ? DE : 
   };
 
   const st = document.createElement('style');
-  st.textContent = 'input[type=password]{width:100%;font:inherit;font-weight:700;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:11px 14px;outline:none}input[type=password]:focus{border-color:#1cb0f6}#auth{position:fixed;inset:0;z-index:60;background:var(--bg);display:none;align-items:center;justify-content:center;padding:16px}#auth .card{background:var(--card);border:2px solid var(--line);border-bottom-width:5px;border-radius:24px;padding:24px;width:100%;max-width:380px}#auth .err{color:#ff4b4b;min-height:22px;margin:10px 0 0;font-size:14px}.lnk{background:none;border:0;color:#1cb0f6;font:inherit;font-weight:900;cursor:pointer;margin-top:12px;padding:0}';
+  st.textContent = 'input[type=password]{width:100%;font:inherit;font-weight:700;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:11px 14px;outline:none}input[type=password]:focus{border-color:#1cb0f6}#auth{position:fixed;inset:0;z-index:60;background:var(--bg);display:none;align-items:center;justify-content:center;padding:16px}#auth .card{background:var(--card);border:2px solid var(--line);border-bottom-width:5px;border-radius:24px;padding:24px;width:100%;max-width:380px}#auth .ahead{display:flex;align-items:center;gap:10px;margin-bottom:8px}#auth .ahead .logo{white-space:nowrap;flex:none}#auth .ahead select{flex:0 1 auto;min-width:0;width:auto;max-width:9.5em;margin-inline-start:auto;font-size:14px;padding:6px 8px;text-overflow:ellipsis}#auth .err{color:#ff4b4b;min-height:22px;margin:10px 0 0;font-size:14px}.lnk{background:none;border:0;color:#1cb0f6;font:inherit;font-weight:900;cursor:pointer;margin-top:12px;padding:0}';
   document.head.appendChild(st);
   const ov = document.createElement('div'); ov.id = 'auth'; document.body.appendChild(ov);
 
@@ -26,7 +26,7 @@ for (const l in LB_TR) if (TR[l] || l === 'de') Object.assign(l === 'de' ? DE : 
     const setup = mode === 'setup', reg = mode === 'register';
     authState = [mode, status];
     ov.style.display = 'flex';
-    ov.innerHTML = `<form class="card"><select id="lg" aria-label="Language" style="float:right;width:auto">${LANGS.map(([v, n]) => `<option value="${v}">${n}</option>`).join('')}</select><div class="logo" style="margin-bottom:8px">Ikan Quests</div>
+    ov.innerHTML = `<form class="card"><div class="ahead"><div class="logo">Ikan Quests</div><select id="lg" aria-label="Language">${LANGS.map(([v, n]) => `<option value="${v}">${n}</option>`).join('')}</select></div>
       <p style="margin:0 0 14px;color:var(--mute)">${setup ? t('Welcome! Create the admin account for this server.') : reg ? t('Create a new account') : t('Sign in to continue')}</p>
       <label class="l" for="au">${t('Username')}</label><input type="text" id="au" autocomplete="username" maxlength="32">
       <label class="l" for="ap">${t('Password')}</label><input type="password" id="ap" autocomplete="${setup || reg ? 'new-password' : 'current-password'}">
