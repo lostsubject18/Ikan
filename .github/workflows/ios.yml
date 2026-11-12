@@ -1,0 +1,49 @@
+name: Build iOS app
+# Compiles the iOS app on GitHub's macOS machines (free for public repositories) without code signing.
+# This proves the project builds; installing on iPhones needs an Apple Developer account (TestFlight), added later.
+# alpha -> "Ikan Alpha" (io.github.lostsubject18.ikan.alpha) against the alpha server, like the Android app.
+on:
+  push:
+    branches: [beta, alpha]
+    paths: ['mobile/**', '.github/workflows/ios.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ios:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - name: Channel settings
+        run: |
+          if [ "${GITHUB_REF_NAME}" != "beta" ]; then
+            node -e "const f='capacitor.config.json',c=require('./'+f);c.server.url='https://ikan-alpha.tail76472d.ts.net';c.server.allowNavigation=['ikan-alpha.tail76472d.ts.net'];c.appName='Ikan Alpha';require('fs').writeFileSync(f,JSON.stringify(c,null,2))"
+            sed -i '' 's#https://ikan.tail76472d.ts.net/#https://ikan-alpha.tail76472d.ts.net/#' www/offline.html
+            sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = io.github.lostsubject18.ikan;/PRODUCT_BUNDLE_IDENTIFIER = io.github.lostsubject18.ikan.alpha;/' ios/App/App.xcodeproj/project.pbxproj
+            /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName Ikan Alpha" ios/App/App/Info.plist
+          fi
+      - run: npm ci
+      - run: npx cap sync ios
+      - name: Build for the iOS Simulator (unsigned)
+        working-directory: mobile/ios/App
+        run: |
+          set -o pipefail
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} build | tail -40
+          ls build/Build/Products/Release-iphonesimulator/
+      - name: Keep the simulator build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ikan-ios-simulator-${{ github.ref_name }}
+          path: mobile/ios/App/build/Build/Products/Release-iphonesimulator/App.app
+          retention-days: 14
