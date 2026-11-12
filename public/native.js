@@ -102,6 +102,8 @@
   const ck = (k, label, on, off) => `<label class="ck${off ? ' off' : ''}" style="margin-top:12px"><input type="checkbox" style="flex:none" data-nk="${k}" ${on ? 'checked' : ''} ${off ? 'disabled' : ''}> ${label}</label>`;
   function open(msg) {
     const s = load(), off = !s.on;
+    // The time is when all four reminders arrive, so it only greys out when none of them is ticked.
+    const noTime = off || !(s.deadline || s.overdue || s.auto || s.daily);
     modal(`<h3>🔔 ${t('Notifications')}</h3>
       ${ck('ongoing', `<b>${t('Persistent notification with your active quests (also on the lock screen)')}</b>`, s.ongoing, false)}
       ${ck('on', `<b>${t('Reminders on this phone')}</b>`, s.on, false)}
@@ -110,8 +112,8 @@
         ${ck('overdue', t('Overdue quests (every day)'), s.overdue, off)}
         ${ck('auto', t('Automatically activated quests'), s.auto, off)}
         ${ck('daily', t('Daily summary'), s.daily, off)}
-        <label class="l" for="ntime">${t('Time')}</label>
-        <input type="time" id="ntime" value="${s.time}" ${off ? 'disabled' : ''} style="width:auto;font:inherit;font-weight:800;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:8px 10px">
+        <div style="${noTime ? 'opacity:.5' : ''}"><label class="l" for="ntime">${t('Time')}</label>
+        <input type="time" id="ntime" value="${s.time}" ${noTime ? 'disabled' : ''} style="${noTime ? 'cursor:not-allowed;' : ''}width:auto;font:inherit;font-weight:800;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:8px 10px"></div>
       </div>
       <p class="hint" id="nmsg" style="margin:14px 0 0">${msg || ''}</p>
       <p class="hint" style="margin:8px 0 0">${t('Widget: long-press the home screen, choose Widgets, then Ikan Quests.')}</p>
