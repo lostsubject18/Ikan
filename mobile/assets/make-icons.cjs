@@ -8,8 +8,9 @@ const out = f => path.join(__dirname, f);
 (async () => {
   // Sources for @capacitor/assets (Android and iOS)
   await sharp(svg(square, fish(0.74, 512, 512))).png().toFile(out('icon-only.png'));
-  // the fish is wide and flat: 0.5 keeps it inside the 72dp circle that launchers show
-  await sharp(svg('', fish(0.5, 512, 512))).png().toFile(out('icon-foreground.png'));
+  // Android insets this layer by 16.7%, so the whole image is the visible area: 0.72 is the largest
+  // size at which the tail and the nose still fit inside a round launcher mask
+  await sharp(svg('', fish(0.72, 512, 512))).png().toFile(out('icon-foreground.png'));
   await sharp(svg(square, '')).png().toFile(out('icon-background.png'));
   const splash = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="2732" height="2732"><rect width="2732" height="2732" fill="#131f24"/>
     <rect x="1066" y="1066" width="600" height="600" rx="150" fill="${BG}"/>${fish(0.435, 1366, 1366)}</svg>`);
