@@ -2,11 +2,19 @@
 // widget and daily reminders (IkanNativePlugin), and adds a "Notifications" screen to the account menu.
 // In a normal browser this file does nothing.
 (() => {
+  // The page is loaded from the server, so only Capacitor's injected bridge is present (no @capacitor/core):
+  // it may lack isNativePlatform()/getPlatform(), so detect the Android bridge and use whichever call path exists.
   const C = window.Capacitor;
-  const native = !!C && typeof C.nativePromise === 'function' &&
-    (typeof C.isNativePlatform === 'function' ? C.isNativePlatform() : (C.getPlatform && C.getPlatform() !== 'web'));
-  if (!native) return;
-  const call = (m, o) => C.nativePromise('IkanNative', m, o || {});
+  const android = !!window.androidBridge || (!!C && ((typeof C.getPlatform === 'function' && C.getPlatform() === 'android') ||
+    (typeof C.isNativePlatform === 'function' && C.isNativePlatform())));
+  const callable = !!C && (typeof C.nativePromise === 'function' || typeof C.toNative === 'function' || !!(C.Plugins && C.Plugins.IkanNative));
+  if (!android || !callable) return;
+  const call = (m, o) => {
+    o = o || {};
+    if (C.Plugins && C.Plugins.IkanNative && typeof C.Plugins.IkanNative[m] === 'function') return C.Plugins.IkanNative[m](o);
+    if (typeof C.nativePromise === 'function') return C.nativePromise('IkanNative', m, o);
+    return new Promise((resolve, reject) => C.toNative('IkanNative', m, o, { resolve, reject }));
+  };
 
   Object.assign(DE, {
     'Notifications': 'Benachrichtigungen',
@@ -31,10 +39,19 @@
     'Deadlines, overdue and newly activated quests': 'Deadlines, überfällige und neu aktivierte Quests',
     'Due today': 'Heute fällig', 'Due tomorrow': 'Morgen fällig', 'Overdue': 'Überfällig', 'Quest activated': 'Quest aktiviert',
     '{n} active quests': '{n} aktive Quests', 'Most urgent: {t}': 'Am dringendsten: {t}',
-    'Notifications work. Your daily reminder comes at {time}.': 'Benachrichtigungen funktionieren. Deine tägliche Erinnerung kommt um {time} Uhr.'
+    'Notifications work. Your daily reminder comes at {time}.': 'Benachrichtigungen funktionieren. Deine tägliche Erinnerung kommt um {time} Uhr.',
+    'Persistent notification with your active quests (also on the lock screen)': 'Dauerhafte Benachrichtigung mit deinen aktiven Quests (auch auf dem Sperrbildschirm)',
+    'Active quests (persistent)': 'Aktive Quests (dauerhaft)',
+    'Shows your active quests on the lock screen': 'Zeigt deine aktiven Quests auf dem Sperrbildschirm',
+    '{i} of {n} active quests': '{i} von {n} aktiven Quests', 'Back': 'Zurück', 'Done': 'Erledigt', 'Next': 'Weiter',
+    'Server not reachable. Is Tailscale on?': 'Server nicht erreichbar. Ist Tailscale an?',
+    'Status': 'Status', 'checking…': 'wird geprüft…',
+    'Widget: {n} active quests loaded, last update {time}': 'Widget: {n} aktive Quests geladen, zuletzt aktualisiert {time}',
+    'Not signed in on the native side yet.': 'Auf Android-Seite noch nicht angemeldet.',
+    'Error': 'Fehler'
   });
 
-  const KEY = 'ikan-notif', DEF = { on: true, deadline: true, auto: true, daily: true, overdue: true, time: '08:00' };
+  const KEY = 'ikan-notif', DEF = { on: true, deadline: true, auto: true, daily: true, overdue: true, time: '08:00', ongoing: true };
   const load = () => { try { return Object.assign({}, DEF, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { return Object.assign({}, DEF); } };
   const store = v => { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch (e) {} };
   // Native code fills in {xp}, {n}, {t}, {time}; t() leaves unknown placeholders as they are.
@@ -46,7 +63,10 @@
     channel: t('Quest reminders'), channelDesc: t('Deadlines, overdue and newly activated quests'),
     nDueToday: t('Due today'), nDueTomorrow: t('Due tomorrow'), nOverdue: t('Overdue'), nActivated: t('Quest activated'),
     nSummary: t('{n} active quests'), nSummaryTop: t('Most urgent: {t}'),
-    nTestTitle: 'Ikan Quests', nTestText: t('Notifications work. Your daily reminder comes at {time}.')
+    nTestTitle: 'Ikan Quests', nTestText: t('Notifications work. Your daily reminder comes at {time}.'),
+    widgetOffline: t('Server not reachable. Is Tailscale on?'),
+    ongoingChannel: t('Active quests (persistent)'), ongoingChannelDesc: t('Shows your active quests on the lock screen'),
+    ongoingCount: t('{i} of {n} active quests'), ongoingPrev: t('Back'), ongoingDone: t('Done'), ongoingNext: t('Next')
   });
   const payload = () => {
     let token = ''; try { token = localStorage.getItem('ikan-token') || ''; } catch (e) {}
@@ -73,13 +93,14 @@
     if (!window.IkanAccount) return;
     clearInterval(askOnce);
     let asked = false; try { asked = !!localStorage.getItem('ikan-notif-asked'); localStorage.setItem('ikan-notif-asked', '1'); } catch (e) {}
-    if (!asked && load().on) call('requestPermission').catch(() => {});
+    if (!asked && (load().on || load().ongoing)) call('requestPermission').catch(() => {});
   }, 2000);
 
-  const ck = (k, label, on, off) => `<label class="ck${off ? ' off' : ''}" style="margin-top:12px"><input type="checkbox" data-nk="${k}" ${on ? 'checked' : ''} ${off ? 'disabled' : ''}> ${label}</label>`;
+  const ck = (k, label, on, off) => `<label class="ck${off ? ' off' : ''}" style="margin-top:12px"><input type="checkbox" style="flex:none" data-nk="${k}" ${on ? 'checked' : ''} ${off ? 'disabled' : ''}> ${label}</label>`;
   function open(msg) {
     const s = load(), off = !s.on;
     modal(`<h3>🔔 ${t('Notifications')}</h3>
+      ${ck('ongoing', `<b>${t('Persistent notification with your active quests (also on the lock screen)')}</b>`, s.ongoing, false)}
       ${ck('on', `<b>${t('Reminders on this phone')}</b>`, s.on, false)}
       <div style="padding-inline-start:12px">
         ${ck('deadline', t('Deadlines (the day before and on the day)'), s.deadline, off)}
@@ -91,7 +112,18 @@
       </div>
       <p class="hint" id="nmsg" style="margin:14px 0 0">${msg || ''}</p>
       <p class="hint" style="margin:8px 0 0">${t('Widget: long-press the home screen, choose Widgets, then Ikan Quests.')}</p>
+      <p class="hint" id="nstat" style="margin:8px 0 0">${t('Status')}: ${t('checking…')}</p>
       <div class="foot" style="flex-wrap:wrap"><button class="btn sec" data-s="acct">${t('Back')}</button><button class="btn sec" data-nt="test" ${off ? 'disabled' : ''}>${t('Send test notification')}</button></div>`);
+    showStatus();
+  }
+  // What the native side sees: helps when the widget stays empty.
+  async function showStatus() {
+    const r = await call('status').catch(e => ({ lastError: String(e && e.message || e) }));
+    const el = document.getElementById('nstat'); if (!el) return;
+    const time = r.lastSync ? new Date(r.lastSync).toLocaleTimeString(typeof LOC === 'function' ? LOC() : undefined, { hour: '2-digit', minute: '2-digit' }) : '–';
+    let txt = r.signedIn === false ? t('Not signed in on the native side yet.') : t('Widget: {n} active quests loaded, last update {time}', { n: r.items ?? '?', time });
+    if (r.lastError) txt += ` · ${t('Error')}: ${r.lastError}`;
+    el.textContent = `${t('Status')}: ${txt}`;
   }
   function save() {
     const s = load();
@@ -105,7 +137,7 @@
     if (!e.target.closest || !e.target.closest('[data-nk], #ntime')) return;
     const s = save();
     let r = null;
-    if (e.target.dataset.nk === 'on' && s.on) r = await call('requestPermission').catch(() => null);
+    if ((e.target.dataset.nk === 'on' && s.on) || (e.target.dataset.nk === 'ongoing' && s.ongoing)) r = await call('requestPermission').catch(() => null);
     open(blocked(r) || t('Saved.'));
   });
   document.addEventListener('click', async e => {

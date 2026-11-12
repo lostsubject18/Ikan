@@ -96,15 +96,25 @@ final class IkanData {
         if (network && signedIn(c)) {
             try {
                 JSONObject st = http(c, "GET", "/api/state", null).optJSONObject("state");
-                if (st != null) { prefs(c).edit().putString("state", st.toString()).apply(); return st; }
-            } catch (Exception ignored) { }
+                if (st != null) {
+                    prefs(c).edit().putString("state", st.toString()).putLong("lastSync", System.currentTimeMillis()).remove("lastError").apply();
+                    return st;
+                }
+                prefs(c).edit().putString("lastError", "no state").apply();
+            } catch (Exception e) {
+                prefs(c).edit().putString("lastError", e.getClass().getSimpleName() + ": " + e.getMessage()).apply();
+            }
         }
         try { return new JSONObject(prefs(c).getString("state", "{}")); } catch (JSONException e) { return new JSONObject(); }
     }
 
     static void clearState(Context c) {
-        prefs(c).edit().remove("state").remove("hidden").apply();
+        prefs(c).edit().remove("state").remove("hidden").remove("lastSync").remove("lastError").apply();
     }
+
+    static String lastError(Context c) { return prefs(c).getString("lastError", ""); }
+
+    static boolean hasState(Context c) { return prefs(c).contains("state"); }
 
     /** One active quest as the widget and reminders see it. */
     static final class Item {

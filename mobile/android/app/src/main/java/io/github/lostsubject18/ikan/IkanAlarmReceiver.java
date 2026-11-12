@@ -45,6 +45,7 @@ public class IkanAlarmReceiver extends BroadcastReceiver {
         } else if (Intent.ACTION_BOOT_COMPLETED.equals(a) || Intent.ACTION_MY_PACKAGE_REPLACED.equals(a)
                 || Intent.ACTION_TIME_CHANGED.equals(a) || Intent.ACTION_TIMEZONE_CHANGED.equals(a)) {
             schedule(context);
+            IkanOngoing.scheduleTick(context);
             IkanWidgetProvider.requestUpdate(context);
         }
     }

@@ -92,14 +92,17 @@ public class IkanWidgetProvider extends AppWidgetProvider {
 
     static void render(Context context) {
         AppWidgetManager mgr = AppWidgetManager.getInstance(context);
+        IkanOngoing.update(context); // the lock screen notification shows the same list
         int[] ids = mgr.getAppWidgetIds(new ComponentName(context, IkanWidgetProvider.class));
         if (ids == null || ids.length == 0) return;
         boolean in = IkanData.signedIn(context);
-        int count = 0;
-        if (in) {
-            List<IkanData.Item> items = IkanData.items(IkanData.loadState(context, false), false);
-            for (IkanData.Item it : items) if (!hidden(context, it.quest)) count++;
-        }
+        List<IkanData.Item> rows = IkanWidgetService.rows(context);
+        int count = rows.size();
+        String empty;
+        if (!in) empty = IkanData.tr(context, "widgetSignIn", "Open Ikan Quests and sign in.");
+        else if (!IkanData.hasState(context) && !IkanData.lastError(context).isEmpty())
+            empty = IkanData.tr(context, "widgetOffline", "Server not reachable. Is Tailscale on?") + "\n" + IkanData.lastError(context);
+        else empty = IkanData.tr(context, "widgetEmpty", "No active quests. Pick new ones or relax a little.");
         int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0);
         PendingIntent open = PendingIntent.getActivity(context, 0,
                 new Intent(context, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP), flags);
@@ -113,20 +116,26 @@ public class IkanWidgetProvider extends AppWidgetProvider {
             RemoteViews v = new RemoteViews(context.getPackageName(), R.layout.ikan_widget);
             v.setTextViewText(R.id.w_title, IkanData.tr(context, "widgetTitle", "Active quests"));
             v.setTextViewText(R.id.w_count, String.valueOf(count));
-            v.setTextViewText(R.id.w_empty, in
-                    ? IkanData.tr(context, "widgetEmpty", "No active quests. Pick new ones or relax a little.")
-                    : IkanData.tr(context, "widgetSignIn", "Open Ikan Quests and sign in."));
+            v.setTextViewText(R.id.w_empty, empty);
             v.setOnClickPendingIntent(R.id.w_header, open);
             v.setOnClickPendingIntent(R.id.w_empty, open);
             v.setOnClickPendingIntent(R.id.w_refresh, refresh);
 
-            Intent svc = new Intent(context, IkanWidgetService.class).putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id);
-            svc.setData(Uri.parse(svc.toUri(Intent.URI_INTENT_SCHEME)));
-            v.setRemoteAdapter(R.id.w_list, svc);
+            if (Build.VERSION.SDK_INT >= 31) {
+                // Android 12+: hand the rows over directly, no list service involved
+                RemoteViews.RemoteCollectionItems.Builder b = new RemoteViews.RemoteCollectionItems.Builder()
+                        .setHasStableIds(true).setViewTypeCount(1);
+                for (IkanData.Item it : rows) b.addItem(it.quest.hashCode(), IkanWidgetService.row(context, it));
+                v.setRemoteAdapter(R.id.w_list, b.build());
+            } else {
+                Intent svc = new Intent(context, IkanWidgetService.class).putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id);
+                svc.setData(Uri.parse(svc.toUri(Intent.URI_INTENT_SCHEME)));
+                v.setRemoteAdapter(R.id.w_list, svc);
+            }
             v.setEmptyView(R.id.w_list, R.id.w_empty);
             v.setPendingIntentTemplate(R.id.w_list, tick);
             mgr.updateAppWidget(id, v);
         }
-        mgr.notifyAppWidgetViewDataChanged(ids, R.id.w_list);
+        if (Build.VERSION.SDK_INT < 31) mgr.notifyAppWidgetViewDataChanged(ids, R.id.w_list);
     }
 }

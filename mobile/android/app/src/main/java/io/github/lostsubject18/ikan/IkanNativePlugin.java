@@ -39,7 +39,8 @@ public class IkanNativePlugin extends Plugin {
             if (!oldToken.equals(next.optString("token"))) IkanData.clearState(c); // other account or signed out
             IkanData.saveConfig(c, next);
             IkanAlarmReceiver.schedule(c);
-            IkanWidgetProvider.refreshAsync(c, null);
+            IkanOngoing.scheduleTick(c);
+            IkanWidgetProvider.refreshAsync(c, null); // also updates the lock screen notification
             call.resolve(status(c));
         } catch (Exception e) {
             call.reject("configure failed: " + e.getMessage());
@@ -64,7 +65,19 @@ public class IkanNativePlugin extends Plugin {
     @PermissionCallback
     private void permissionResult(PluginCall call) {
         IkanAlarmReceiver.schedule(getContext());
+        IkanOngoing.update(getContext());
         call.resolve(status(getContext()));
+    }
+
+    /** Diagnostics for the settings screen: reloads from the server and reports what the widget sees. */
+    @PluginMethod
+    public void status(PluginCall call) {
+        Context c = getContext();
+        new Thread(() -> {
+            if (IkanData.signedIn(c)) IkanData.loadState(c, true);
+            IkanWidgetProvider.render(c);
+            call.resolve(status(c));
+        }).start();
     }
 
     @PluginMethod
@@ -81,6 +94,12 @@ public class IkanNativePlugin extends Plugin {
         JSObject r = new JSObject();
         r.put("granted", NotificationManagerCompat.from(c).areNotificationsEnabled());
         r.put("signedIn", IkanData.signedIn(c));
+        r.put("server", IkanData.config(c).optString("server"));
+        r.put("items", IkanWidgetService.rows(c).size());
+        r.put("lastSync", IkanData.prefs(c).getLong("lastSync", 0));
+        r.put("lastError", IkanData.lastError(c));
+        android.appwidget.AppWidgetManager mgr = android.appwidget.AppWidgetManager.getInstance(c);
+        r.put("widgets", mgr.getAppWidgetIds(new android.content.ComponentName(c, IkanWidgetProvider.class)).length);
         return r;
     }
 }
