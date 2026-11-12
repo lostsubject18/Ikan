@@ -11,7 +11,7 @@
   <Overview>Ikan Quests: a self-hosted quest-style productivity app with multiple local users. All data stays on your server. The first user to sign in becomes the admin.</Overview>
   <Category>Productivity:</Category>
   <WebUI>http://[IP]:[PORT:3000]/</WebUI>
-  <ExtraParams>--user 99:100</ExtraParams>
+  <ExtraParams></ExtraParams>
   <Config Name="WebUI Port" Target="3000" Default="3000" Mode="tcp" Description="Port of the web interface" Type="Port" Display="always" Required="true" Mask="false">3000</Config>
   <Config Name="Data" Target="/data" Default="/mnt/user/appdata/ikan" Mode="rw" Description="Location of the database (back up this folder)" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/ikan</Config>
   <Config Name="Open registration" Target="ALLOW_REGISTRATION" Default="false" Mode="" Description="true = anyone on your network can create their own account. false = only the admin creates users." Type="Variable" Display="always" Required="false" Mask="false">false</Config>

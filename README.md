@@ -18,6 +18,13 @@ The interface is available in 11 languages (English by default: German, French, 
 Backup: copy the appdata folder `ikan` (or include it in your appdata backup plugin).
 Update: Docker tab > "Force Update" on the container.
 
+## Beta access via Tailscale (Unraid)
+
+1. Tailscale admin console > DNS: enable **HTTPS Certificates** (once per tailnet).
+2. Unraid > Docker > ikan > Edit: **Use Tailscale** on, hostname `ikan`, **Tailscale Serve** = Serve, port `3000`. Leave *Extra Parameters* empty (no `--user`): the image starts as root so the Tailscale hook can run, then drops the app to `PUID`/`PGID` (default 99/100).
+3. Open the container log once and approve the login link; the device `ikan` appears in your tailnet.
+4. Share only the `ikan` machine with each tester (Machines > ikan > Share). They install Tailscale, accept the invite and open `https://ikan.<your-tailnet>.ts.net`. They cannot reach anything else on your server.
+
 ## Docker Compose
 
     docker compose up -d --build
