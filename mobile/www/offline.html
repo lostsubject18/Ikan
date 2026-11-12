@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ikan Quests</title>
+<style>
+  :root{--bg:#131f24;--card:#1f2c33;--ink:#f1f7fb;--mute:#97a8b2;--green:#58cc02;--green-d:#58a700}
+  body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--ink);font:700 16px system-ui,sans-serif;padding:24px;box-sizing:border-box;text-align:center}
+  .card{background:var(--card);border-radius:24px;padding:28px 22px;max-width:360px}
+  h1{color:var(--green);margin:0 0 10px;font-size:26px}
+  p{color:var(--mute);margin:0 0 8px;line-height:1.45}
+  button{margin-top:16px;font:inherit;font-weight:900;border:0;border-radius:14px;padding:12px 22px;background:var(--green);color:#fff;box-shadow:0 4px 0 var(--green-d)}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Ikan Quests</h1>
+  <p id="a">Der Server ist gerade nicht erreichbar.</p>
+  <p id="b">Ist Tailscale auf diesem Handy eingeschaltet?</p>
+  <button id="r">Erneut versuchen</button>
+</div>
+<script>
+  if (!/^de/i.test(navigator.language)) {
+    document.documentElement.lang = 'en';
+    a.textContent = 'The server cannot be reached right now.';
+    b.textContent = 'Is Tailscale switched on on this phone?';
+    r.textContent = 'Try again';
+  }
+  r.onclick = () => location.replace('https://ikan.tail76472d.ts.net/');
+</script>
+</body>
+</html>

@@ -2,6 +2,7 @@ name: Build and publish Docker image
 on:
   push:
     branches: [main]
+    paths-ignore: ['mobile/**', '.github/workflows/android.yml']
   workflow_dispatch:
 permissions:
   contents: read

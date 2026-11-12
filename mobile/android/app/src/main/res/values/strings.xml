@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Ikan Quests</string>
+    <string name="title_activity_main">Ikan Quests</string>
+    <string name="package_name">io.github.lostsubject18.ikan</string>
+    <string name="custom_url_scheme">io.github.lostsubject18.ikan</string>
+</resources>

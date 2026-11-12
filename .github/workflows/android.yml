@@ -1,0 +1,57 @@
+name: Build Android APK
+on:
+  push:
+    branches: [main]
+    paths: ['mobile/**', '.github/workflows/android.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npx cap sync android
+      - name: Write signing key
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then echo "::error::Secret ANDROID_KEYSTORE_B64 is missing"; exit 1; fi
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/ikan-release.p12"
+      - name: Build signed release APK
+        working-directory: mobile/android
+        env:
+          IKAN_KEYSTORE: ${{ runner.temp }}/ikan-release.p12
+          IKAN_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          IKAN_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          IKAN_VERSION_CODE: ${{ github.run_number }}
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleRelease
+          APK=app/build/outputs/apk/release/app-release.apk
+          "$ANDROID_HOME"/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner verify --print-certs "$APK"
+          cp "$APK" "$RUNNER_TEMP/ikan-quests.apk"
+      - name: Publish to release "android-latest"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NOTES="Ikan Quests for Android, build ${{ github.run_number }} ($(git rev-parse --short HEAD)). Needs Tailscale on the phone."
+          if gh release view android-latest >/dev/null 2>&1; then
+            gh release upload android-latest "$RUNNER_TEMP/ikan-quests.apk" --clobber
+            gh release edit android-latest --notes "$NOTES"
+          else
+            gh release create android-latest "$RUNNER_TEMP/ikan-quests.apk" --title "Android (latest)" --notes "$NOTES" --prerelease
+          fi

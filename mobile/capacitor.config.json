@@ -1,0 +1,13 @@
+{
+  "appId": "io.github.lostsubject18.ikan",
+  "appName": "Ikan Quests",
+  "webDir": "www",
+  "server": {
+    "url": "https://ikan.tail76472d.ts.net",
+    "errorPath": "offline.html",
+    "allowNavigation": ["ikan.tail76472d.ts.net"]
+  },
+  "android": {
+    "backgroundColor": "#131f24"
+  }
+}
