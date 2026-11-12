@@ -88,13 +88,16 @@
   setInterval(() => push(false), 5000); // sign-in, sign-out and language changes
   push(false);
 
-  // Ask for the Android 13+ notification permission once, after the first sign-in.
-  const askOnce = setInterval(() => {
+  // On every start, once signed in: if reminders or the pinned notification are on but Android does not allow
+  // notifications yet, ask (Android itself stops showing the dialog after the user declined twice).
+  const askOnStart = setInterval(async () => {
     if (!window.IkanAccount) return;
-    clearInterval(askOnce);
-    let asked = false; try { asked = !!localStorage.getItem('ikan-notif-asked'); localStorage.setItem('ikan-notif-asked', '1'); } catch (e) {}
-    if (!asked && (load().on || load().ongoing)) call('requestPermission').catch(() => {});
-  }, 2000);
+    clearInterval(askOnStart);
+    const s = load();
+    if (!(s.on || s.ongoing)) return;
+    const st = await call('status').catch(() => null);
+    if (st && st.granted === false) call('requestPermission').catch(() => {});
+  }, 1500);
 
   const ck = (k, label, on, off) => `<label class="ck${off ? ' off' : ''}" style="margin-top:12px"><input type="checkbox" style="flex:none" data-nk="${k}" ${on ? 'checked' : ''} ${off ? 'disabled' : ''}> ${label}</label>`;
   function open(msg) {
@@ -151,4 +154,16 @@
     }
   });
   window.IkanNotif = { open };
+
+  // Android back gesture (asked by MainActivity): step back inside an open window, or close it.
+  // Returns false when there is nothing to go back to, then the app moves to the background.
+  window.IkanBack = () => {
+    const m = document.getElementById('modal');
+    if (!m || !m.innerHTML) return false;
+    const label = b => b.textContent.trim();
+    const btns = [...m.querySelectorAll('button')];
+    const back = btns.find(b => label(b) === t('Back')) || btns.find(b => label(b) === t('Cancel'));
+    if (back) back.click(); else closeTop();
+    return true;
+  };
 })();
