@@ -150,24 +150,6 @@ final class IkanData {
         } catch (Exception e) { return -1; }
     }
 
-    /** Next deadline of a perpetual quest, same rule as nextDue() in the web app:
-     *  the old deadline (or today) plus n days / weeks / months / years, until it lies after today. */
-    static String nextDue(String due, int n, int unit) {
-        long td = today(), base = day(due);
-        if (base < 0) base = td;
-        Calendar k = Calendar.getInstance();
-        // Always counted from the original day (k * n steps), so a deadline on the 31st does not drift
-        for (int i = 1; i < 5000; i++) {
-            k.setTimeInMillis(base);
-            if (unit == 0) k.add(Calendar.DAY_OF_MONTH, n * i);
-            else if (unit == 1) k.add(Calendar.DAY_OF_MONTH, 7 * n * i);
-            else if (unit == 2) k.add(Calendar.MONTH, n * i); // clamps to the month's last day
-            else k.add(Calendar.YEAR, n * i);
-            if (k.getTimeInMillis() > td) break;
-        }
-        return String.format(Locale.ROOT, "%04d-%02d-%02d", k.get(Calendar.YEAR), k.get(Calendar.MONTH) + 1, k.get(Calendar.DAY_OF_MONTH));
-    }
-
     /** Same rule as autoAct() in the web app: deadline minus n days / weeks / months. */
     static long activationDay(JSONObject q) {
         if (!q.optBoolean("auto") || q.optString("due").isEmpty()) return 0;
@@ -198,6 +180,13 @@ final class IkanData {
                 if (q == null || q.optBoolean("done")) continue;
                 long act = activationDay(q);
                 boolean active = q.optBoolean("active") || (act > 0 && act <= today);
+                if (q.optBoolean("rep")) {
+                    // Perpetual quests: a finished one rests until its round ends ("next"), then it is due again
+                    long next = q.optLong("next", 0);
+                    boolean roundOver = next > 0 && System.currentTimeMillis() >= next;
+                    if (q.optBoolean("rest")) active = roundOver;
+                    else if (roundOver) active = true;
+                }
                 if (!active && !(includeUpcoming && act > 0)) continue;
                 Item it = new Item();
                 it.cat = c.optString("id"); it.quest = q.optString("id");
@@ -297,11 +286,12 @@ final class IkanData {
             hist.put(he);
 
             if (perpetual) {
-                // Same as the web app's repReset: steps unticked, not active, deadline moved on
+                // Same as the web app's repReset: steps unticked, not active, resting until its round ends
+                // ("next"; the web app sets it if it is still missing and brings the quest back on time)
                 JSONArray steps = quest.optJSONArray("steps");
                 for (int j = 0; steps != null && j < steps.length(); j++) { JSONObject st = steps.optJSONObject(j); if (st != null) st.put("d", false); }
                 quest.put("active", false);
-                quest.put("due", nextDue(quest.optString("due"), Math.max(1, quest.optInt("rn", 1)), quest.optInt("ru", 0)));
+                quest.put("rest", true);
             } else {
                 JSONArray qs = cat.getJSONArray("quests"), keep = new JSONArray();
                 for (int j = 0; j < qs.length(); j++) if (!questId.equals(qs.optJSONObject(j) != null ? qs.optJSONObject(j).optString("id") : null)) keep.put(qs.get(j));
