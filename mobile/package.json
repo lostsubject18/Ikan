@@ -5,8 +5,8 @@
   "description": "Android (and later iOS) shell for Ikan Quests, built with Capacitor",
   "scripts": {
     "sync": "cap sync android",
-    "icons": "capacitor-assets generate --android --iconBackgroundColor \"#58cc02\" --iconBackgroundColorDark \"#58cc02\" --splashBackgroundColor \"#131f24\" --splashBackgroundColorDark \"#131f24\" && node assets/android-vector.cjs",
-    "icons:ios": "capacitor-assets generate --ios --iconBackgroundColor \"#58cc02\" --iconBackgroundColorDark \"#58cc02\" --splashBackgroundColor \"#131f24\" --splashBackgroundColorDark \"#131f24\"",
+    "icons": "capacitor-assets generate --android --iconBackgroundColor \"#ffc800\" --iconBackgroundColorDark \"#ffc800\" --splashBackgroundColor \"#131f24\" --splashBackgroundColorDark \"#131f24\" && node assets/android-vector.cjs",
+    "icons:ios": "capacitor-assets generate --ios --iconBackgroundColor \"#ffc800\" --iconBackgroundColorDark \"#ffc800\" --splashBackgroundColor \"#131f24\" --splashBackgroundColorDark \"#131f24\"",
     "sync:ios": "cap sync ios"
   },
   "dependencies": {

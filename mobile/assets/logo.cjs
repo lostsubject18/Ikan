@@ -59,8 +59,8 @@ const art = ({ line: lc, letter: tc, lw = 40, tw = 56 }) =>
   outline.map(d => `<path d="${d}" stroke="${lc}" stroke-width="${lw}"/>`).join('') +
   letters.map(d => `<path d="${d}" stroke="${tc}" stroke-width="${tw}"/>`).join('') + `</g>`;
 
-// Colour scheme "2d": petrol letters on a cream fish, on the app's green
-const COLORS = { bg: '#58cc02', line: '#fff3c4', letter: '#0b5563' };
+// App icon: petrol letters on a white fish, on gold
+const COLORS = { bg: '#ffc800', line: '#ffffff', letter: '#155f6b' };
 // scale s, centred on (cx, cy)
 const fish = (s, cx, cy, colors = COLORS) => `<g transform="translate(${cx} ${cy}) scale(${s}) translate(-705 -360)">${art(colors)}</g>`;
 module.exports = { fish, COLORS };
