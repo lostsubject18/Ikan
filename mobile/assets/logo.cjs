@@ -16,7 +16,7 @@ const poly = pts => 'M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).
 // --- the fish ---
 const P = [330, 388];                       // where tail meets body
 const TOP = [860, 232], NOSE = [1306, 446], BOT = [860, 552];
-const tailV = line([100, 196], [100, 532]);  // back edge of the tail
+const tailV = line([100, 250], [100, 532]);  // back edge of the tail
 const tailL = line([100, 532], P);            // lower tail edge
 const s1 = bez(P, [470, 306], [680, 234], TOP);                 // back, tail side
 const s2 = bez(TOP, [1090, 232], [1306, 330], NOSE);           // back, head side
@@ -28,20 +28,30 @@ const outline = [poly(sample(tailV)), poly([...sample(tailL), ...sample(s1).slic
 // i: the back edge of the tail
 const I = poly(sample(tailV, 0, 0.97));
 // k: a shorter stem through the tail joint, arms running along the back and the belly
-const K = [poly([[P[0] + 6, 262], [P[0], P[1]], [P[0] - 6, 512]]),
+const K = [poly([[P[0], 262], [P[0], 512]]),
   poly(sample(s1, atX(s1, 548), 0).concat(sample(s4, 1, atX(s4, 560)).slice(1)))];
-// a: arch along the back that turns down into a leg reaching the belly, plus the little bowl hook
-const aStart = atX(s1, 655), aTurn = atX(s1, 820);
+// a (two-storey): arch along the back that bends into a straight stem down to the belly,
+// and a round bowl whose bottom runs along the belly and closes into the stem
+const legX = 908;
+// shorter arch on the back, then a wide round shoulder into the stem
+const aStart = atX(s1, 682), aTurn = atX(s1, 770);
 const archA = sample(s1, aStart, aTurn);
-const legX = 878, belly = s4(atX(s4, legX))[1];
 const a0 = s1(aTurn), a1 = s1(aTurn + 1e-3), al = Math.hypot(a1[0] - a0[0], a1[1] - a0[1]);
-const turnA = sample(bez(a0, [a0[0] + (a1[0] - a0[0]) / al * 38, a0[1] + (a1[1] - a0[1]) / al * 38], [legX, a0[1] + 8], [legX, a0[1] + 70])).slice(1); // leaves the back along its own tangent
-const A = [poly([...archA, ...turnA, [legX + 4, belly + 2]]), 'M712 412 C672 420 672 468 712 474'];
-// n: a leg dropping from the back, and the arch following the head round to the nose
-const nT = atX(s2, 975);
-const n0 = s2(nT);
-const N1 = 'M' + n0.join(' ') + ` C1010 ${n0[1] + 60} 1062 360 1058 500`;
-const N2 = poly(sample(s2, nT, 1).concat(sample(s3, 0, 0.035).slice(1)));
+const turnA = sample(bez(a0, [a0[0] + (a1[0] - a0[0]) / al * 90, a0[1] + (a1[1] - a0[1]) / al * 90], [legX, a0[1] + 20], [legX, a0[1] + 130])).slice(1);
+const legEnd = s3(atX(s3, legX));
+const stemA = poly([...archA, ...turnA, legEnd]);
+// bowl as in the sketch: a curl that starts inside, swings round to the left, sits on the belly
+// with a rounded bottom and rises at an angle into the stem
+const low = s4(atX(s4, 760));
+const bowl = poly([
+  ...sample(bez([730, 378], [700, 374], [652, 406], [650, 452])),
+  ...sample(bez([650, 452], [649, 506], [692, low[1] - 4], [760, low[1] - 4])).slice(1),
+  ...sample(bez([760, low[1] - 4], [836, low[1] - 4], [legX - 2, 500], [legX, 422])).slice(1)]);
+const A = [stemA, bowl];
+// n: a straight stem from the back down to the belly, and the arch following the head round the nose
+const nX = 1004, nT = atX(s2, nX);
+const N1 = poly([s2(nT), s3(atX(s3, nX))]);
+const N2 = poly(sample(s2, nT, 1).concat(sample(s3, 0, 0.09).slice(1)));
 const letters = [I, ...K, ...A, N1, N2];
 
 const art = ({ line: lc, letter: tc, lw = 40, tw = 56 }) =>
