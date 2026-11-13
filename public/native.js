@@ -1,5 +1,5 @@
 // Android app only (Capacitor): hands the session, reminder settings and translated texts to the native
-// widget and daily reminders (IkanNativePlugin), and adds a "Notifications" screen to the device settings.
+// widget and daily reminders (IkanNativePlugin), and adds a "Notifications" button to the device settings in the settings menu.
 // In a normal browser this file does nothing.
 (() => {
   // The page is loaded from the server, so only Capacitor's injected bridge is present (no @capacitor/core):
@@ -118,7 +118,7 @@
       <p class="hint" id="nmsg" style="margin:14px 0 0">${msg || ''}</p>
       <p class="hint" style="margin:8px 0 0">${t('Widget: long-press the home screen, choose Widgets, then Ikan Quests.')}</p>
       <p class="hint" id="nstat" style="margin:8px 0 0">${t('Status')}: ${t('checking…')}</p>
-      <div class="foot" style="flex-wrap:wrap"><button class="btn sec" data-s="device">${t('Back')}</button><button class="btn sec" data-nt="test" ${off ? 'disabled' : ''}>${t('Send test notification')}</button></div>`);
+      <div class="foot" style="flex-wrap:wrap"><button class="btn sec" data-s="acct">${t('Back')}</button><button class="btn sec" data-nt="test" ${off ? 'disabled' : ''}>${t('Send test notification')}</button></div>`);
     showStatus();
   }
   // What the native side sees: helps when the widget stays empty.

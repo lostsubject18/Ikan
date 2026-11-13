@@ -351,11 +351,12 @@ for (const l in SET_TR) if (TR[l] || l === 'de') Object.assign(l === 'de' ? DE :
     return { init, pull, push, stampAll, resnapAll, reset, sync };
   })();
 
-  const menu = () => modal(`<h3>⚙️ ${t('Settings')}</h3><div class="foot" style="flex-direction:column">${me.admin ? `<div class="hint" style="margin:0;text-align:start">${t('Admin options')}</div><button class="btn sec" data-s="users">${t('Manage users')}</button>` : ''}<div class="hint" style="margin:${me.admin ? '8px 0 0' : '0'};text-align:start">${t('This device')}</div><button class="btn sec" data-s="device">📱 ${t('Device settings')}</button><div class="hint" style="margin:8px 0 0;text-align:start">${t('Account')}</div><button class="btn sec" data-s="pwform">${t('Change password')}</button><button class="btn solid" data-s="logout">${t('Sign out')}</button><button class="btn sec" data-a="profile" style="margin-top:12px">${t('Back')}</button></div>`);
+  const menu = () => modal(`<h3>⚙️ ${t('Settings')}</h3><div class="foot" style="flex-direction:column">${me.admin ? `<div class="hint" style="margin:0;text-align:start">${t('Admin options')}</div><button class="btn sec" data-s="users">${t('Manage users')}</button>` : ''}<div class="hint" style="margin:${me.admin ? '8px 0 0' : '0'};text-align:start">${t('Device settings')}</div>${window.IkanNotif ? `<button class="btn sec" data-nt="open">🔔 ${t('Notifications')}</button>` : ''}<button class="btn sec" data-s="theme">${THEMES[themeNow()][0]} ${t('Appearance')}: ${t(THEMES[themeNow()][1])}</button><div class="hint" style="margin:8px 0 0;text-align:start">${t('Account')}</div><button class="btn sec" data-s="pwform">${t('Change password')}</button><button class="btn solid" data-s="logout">${t('Sign out')}</button><button class="btn sec" data-a="profile" style="margin-top:12px">${t('Back')}</button></div>`);
   // Per device: light / dark / follow the system (stored in this browser, applied in index.html before the first paint)
   const themeNow = () => { try { return localStorage.getItem('ikan-theme') || 'system'; } catch (e) { return 'system'; } };
-  const deviceModal = () => modal(`<h3>📱 ${t('Device settings')}</h3><label class="l">${t('Appearance')}</label><div class="opts">${[['system', 'System'], ['light', 'Light'], ['dark', 'Dark']].map(([v, l]) => `<button type="button" class="opt ${themeNow() === v ? 'on' : ''}" data-s="theme" data-v="${v}">${t(l)}</button>`).join('')}</div><p class="hint" style="margin:8px 0 0">${t('Only applies on this device.')}</p>${window.IkanNotif ? `<div class="foot" style="flex-direction:column"><button class="btn sec" data-nt="open">🔔 ${t('Notifications')}</button></div>` : ''}<div class="foot" style="flex-direction:column"><button class="btn sec" data-s="acct">${t('Back')}</button></div>`);
-  const setTheme = v => { try { v === 'system' ? localStorage.removeItem('ikan-theme') : localStorage.setItem('ikan-theme', v); } catch (e) {} if (v === 'system') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = v; deviceModal(); };
+  // The appearance button cycles: follow the system -> light -> dark -> system
+  const THEMES = { system: ['🌓', 'System', 'light'], light: ['☀️', 'Light', 'dark'], dark: ['🌙', 'Dark', 'system'] };
+  const setTheme = v => { try { v === 'system' ? localStorage.removeItem('ikan-theme') : localStorage.setItem('ikan-theme', v); } catch (e) {} if (v === 'system') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = v; menu(); };
   async function usersModal(msg) {
     const L = (await api('GET', '/api/users')).users;
     modal(`<h3>${t('Users')}</h3>${L.map(u => `<div class="q" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px"><b style="flex:1">${esc(u.name)}${u.admin ? ' · ' + t('Admin') : ''}</b>${u.id === me.id ? '' : `<button class="btn sec" data-s="pw" data-id="${u.id}">${t('Password')}</button><button class="btn sec red" data-s="del" data-id="${u.id}" data-n="${esc(u.name)}">${t('Delete')}</button>`}</div>`).join('')}
@@ -370,8 +371,7 @@ for (const l in SET_TR) if (TR[l] || l === 'de') Object.assign(l === 'de' ? DE :
     const a = el.dataset.s, D = el.dataset;
     try {
       if (a === 'user' || a === 'acct') menu();
-      else if (a === 'device') deviceModal();
-      else if (a === 'theme') setTheme(D.v);
+      else if (a === 'theme') setTheme(THEMES[themeNow()][2]);
       else if (a === 'logout') { try { await api('POST', '/api/logout') } catch (x) {} closeTop(); out(); }
       else if (a === 'users') await usersModal();
       else if (a === 'add') { await api('POST', '/api/users', { name: $('nu').value.trim(), password: $('np').value }); await usersModal(t('User created.')); }
